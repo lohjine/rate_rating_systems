@@ -1,0 +1,9 @@
+numpy
+pandas
+scipy
+matplotlib
+tqdm
+elo
+skills
+trueskill
+glicko2
