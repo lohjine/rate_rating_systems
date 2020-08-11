@@ -72,6 +72,10 @@ Logloss, moving average of last 5000 games. The lower the logloss score, the bet
 We see that ELO, Glicko and Glicko2 have similar logloss score, but Trueskill's logloss never does better than the baseline always-draw model.
 
 
+## Caveats
+
+In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for multiple matches at a time (5-10). However, for many purposes such as online games, ratings are neccessarily updated after every match, and used for matchmaking immediately after. It is possible to retroactively rerun Glicko/Glicko2, or use a running window, but this may result in rating loss after a win, which is a major feel-bad factor for the player. Hence, we choose to evaluate ratings after each match.
+
 
 ## Running the simulations
 
@@ -83,7 +87,7 @@ Use the following instructions to output the plots that are in this page.
 
 ```
 # Clone repo
-git clone https://github.com/lohjine/rate-rating-systems.git
+git clone https://github.com/lohjine/rate_rating_systems.git
 cd rate_rating_systems
 
 # Install requirements
