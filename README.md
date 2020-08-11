@@ -1,6 +1,6 @@
 # Evaluation of rating systems
 
-There are a few popular rating systems to choose from, such as ELO, Glicko and Trueskill. The various systems have their pros and cons, and there has also been attempts to modify them for deployment. Evaluating rating systems can be hard, and they are usually done academically, on historical datasets which precludes the effect of matchmaking or on closed systems where only the owner has access to. This problem is made harder when rating systems are to be used for game modes which they are not designed for, such as.
+There are a few popular rating systems to choose from, such as ELO, Glicko and Trueskill. The various systems have their pros and cons. Evaluating rating systems can be hard, and they are usually done academically, or on historical datasets which precludes the effect of matchmaking or on closed systems where only the owner has access to. This problem is made harder when rating systems are to be used for game modes which they are not designed for, such as FFA or team mode.
 
 This project is an attempt to build fair scenarios for evaluating rating systems across a variety of modes. In this README.md, the scenarios will be described and the results of the evaluation are presented. In scenario_evaluation.md, the scenario design will be explained in greater detail, as well as presenting case studies to build evidence for the validity of the tests.
 
