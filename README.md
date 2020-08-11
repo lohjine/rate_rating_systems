@@ -49,7 +49,7 @@ As RNG is used within the simulation, we run 10 simulations for each rating syst
 
 ![scenario1result](img/scenario1.png)
 
-Glicko2 had the best results early on, but Glicko pulled ahead after ~125 rounds. Trueskill and ELO performed roughly the same, but significantly poorer than both Glicko variants.
+Trueskill performed the best, while Glicko managed to catch up later on.
 
 
 ## Scenario 2
@@ -69,7 +69,7 @@ Logloss, moving average of last 5000 games. The lower the logloss score, the bet
 
 ![scenario2result](img/scenario2.png)
 
-We see that ELO, Glicko and Glicko2 have similar logloss score, but Trueskill's logloss never does better than the baseline always-draw model.
+ELO, Glicko and Glicko2 converges to similar logloss scores, but Trueskill's logloss never does better than the baseline always-draw model.
 
 
 ## Caveats
