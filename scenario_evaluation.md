@@ -18,18 +18,13 @@ As each player only plays 1 game per round, all ratings are essentially simultan
 
 ## Demonstration that Kendall-Tau converges correctly
 
-In this case, we set players' standard deviation to 0 to remove the chance of a draw. Number of players are set to 50 so convergence is faster. Running window is set to 50, which means that matchmaking is completely random.
+In this case, we set players' standard deviation to 0 to remove the chance of a draw. Number of players are set to 40 so convergence is faster. Running window is set to 40, which means that matchmaking is completely random.
 
 In this plot, the moving average of Kendall-Tau score is set to 1, and we only run 1 simulation for each rating system.
 
-![scenario1kendalltauconvergence](img/scenario1kendalltauconvergence.png) - need all algos
+![scenario1kendalltauconvergence](img/scenario1kendalltauconvergence.png)
 
 
-## Demonstration of the effect of running window in matchmaking
-
-In the design of the matchmaking, we want to match players of close skill to each other. However, overly-limiting the pairings to close skill levels result in poorer convergence for all algorithms. 
-
-![scenario1poorconvergence](img/scenario1poorconvergence.png) - Varying running window from 1, 25, 50, use ELO
 
 
 
