@@ -25,6 +25,11 @@ In this plot, the moving average of Kendall-Tau score is set to 1, and we only r
 ![scenario1kendalltauconvergence](img/scenario1kendalltauconvergence.png)
 
 
+## Demonstration of the effect of running window in matchmaking
+
+In the design of the matchmaking, we want to match players of close skill to each other. This is to test effect of matchmaking step 2 running window size. Kendall-Tau running average is set to 1.
+
+![scenario1poorconvergence](img/scenario1runningwindowconvergence.png)
 
 
 
