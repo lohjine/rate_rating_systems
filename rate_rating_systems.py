@@ -272,7 +272,7 @@ class ConvergenceEvaluation:
         Goal is to pair up close scores to play against each other, with some variance.
 
         1. Players are sorted according to their current matchmaking rating (e.g. [1400, 1450, 1490, 1520, ...])
-        2. A running window of 50 is performed across the array of players, where the indices of players are shuffled uniformly within the window at each step. (e.g. after first step, [1490, 1400, 1520, 1450, ...(first 50), 1900, 1910, 1930, ...] )
+        2. A running window of 10% of players is performed across the array of players, where the indices of players are shuffled uniformly within the window at each step. (e.g. after first step, [1490, 1400, 1520, 1450, ...(first 50), 1900, 1910, 1930, ...] )
         3. Players are matched against their adjacent index. (e.g. [1490 vs 1400, 1520 vs 1450, ...])
 
         """

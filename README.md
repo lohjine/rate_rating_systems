@@ -31,7 +31,7 @@ When two players are matched-up against each other, 2 numbers are generated for 
 
 ```
 1. Players are sorted according to their current matchmaking rating (e.g. [1400, 1450, 1490, 1520, ...])
-2. A running window of 50 is performed across the array of players, where the indices of players are shuffled uniformly within the window at each step. (e.g. after first step, [1490, 1400, 1520, 1450, ...(first 50), 1900, 1910, 1930, ...] )
+2. A running window of 50 (10% of player count) is performed across the array of players, where the indices of players are shuffled uniformly within the window at each step. (e.g. after first step, [1490, 1400, 1520, 1450, ...(first 50), 1900, 1910, 1930, ...] )
 3. Players are matched against their adjacent index. (e.g. [1490 vs 1400, 1520 vs 1450, ...])
 ```
 
@@ -66,7 +66,6 @@ Logloss, moving average of last 5000 games. The lower the logloss score, the bet
 
 ### Results
 
-
 ![scenario2result](img/scenario2.png)
 
 ELO, Glicko and Glicko2 converges to similar logloss scores, but Trueskill's logloss never does better than the baseline always-draw model.
@@ -79,7 +78,7 @@ In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for mu
 
 ## Running the simulations
 
-We reccommend using a REPL that also has support for graphics for plots, to play around with the code.
+We recommend using a REPL that also has support for graphics for plots, to play around with the code.
 
 ### Reproducing results
 
