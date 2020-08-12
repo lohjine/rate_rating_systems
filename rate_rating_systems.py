@@ -20,7 +20,7 @@ def moving_average(a, n=3):
     return ret[n - 1:] / n
 
 
-ratingevaluationdataset = pd.read_csv(r"dataset\ChessRatings2\primary_training_part1.csv")
+ratingevaluationdataset = pd.read_csv(r"dataset\ChessRatings2\primary_training_part1_processed.csv")
 
 """
 All rating systems should implement 1 class and 3 functions
@@ -538,7 +538,7 @@ def compare_results_rating_evaluation(list_of_obj_loss, moving_window=1000, lege
     plt.figure()
     for obj in list_of_obj_loss:
         plt.plot(np.round(moving_average(obj.loglosses[obj.loglosses != 0], n=moving_window), decimals=7))
-    plt.title('logloss ' + title_details)
+    plt.title('' + title_details)
     if legend:
         plt.legend(legend)
 
@@ -576,7 +576,7 @@ def scenario1():
         glicko2cons.append(glicko2con)
 
     compare_results_convergence_multi([elocons, glickocons, tscons, glicko2cons], legend=['elo', 'glicko', 'trueskill', 'glicko2'], moving_window=10,
-                                      title_details='')
+                                      title_details='Kendall-Tau score (higher is better) of rating systems')
 
 
 def scenario2():
@@ -595,7 +595,7 @@ def scenario2():
 
     compare_results_rating_evaluation([elosim, glickosim, tssim, glicko2sim],
                                       legend=['elo', 'glicko', 'trueskill', 'glicko2'], moving_window=5000,
-                                      title_details='(window=10/1000, p_count=500, steps=200 , draw=0)')
+                                      title_details='Logloss (moving average=5000, lower is better) of rating systems')
 
 
 headless = False
