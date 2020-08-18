@@ -32,8 +32,15 @@ In the design of the matchmaking, we want to match players of close skill to eac
 ![scenario1poorconvergence](img/scenario1runningwindowconvergence.png)
 
 
+## Investigating the effect of reducing Glicko/Glicko2 stdev loss
 
+In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for multiple matches at a time (5-10). However, in scenario 1, we evaluate single matches at a time. One consequence is that the stdev is reduced much faster than would normally be expected to.
 
+In this run, we half the stdev loss for each match by taking the mean of the original and adjusted stdev.
+
+![scenario1_reducedglickosd](img/scenario1_reducedglickosd.png)
+
+We see significant improvement to Glicko2, but similar performance for Glicko.
 
 
 
