@@ -298,7 +298,6 @@ class ConvergenceEvaluation:
         matchups = []
 
         for i in range(start_iter, end_iter, interval):
-            # v3
             player_a = sorted_order[pairings[i]]
             player_b = sorted_order[pairings[i + 1]]
             matchups.append((player_a, player_b))
