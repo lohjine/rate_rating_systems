@@ -46,6 +46,6 @@ We see significant improvement to Glicko2, but similar performance for Glicko.
 
 We run the shuffling algorithm for 100 players, with 50 swap passes, for 10000 trials. The resulting histogram for indices 1, 30, 50, 70, 100 are plotted, which shows a close-to-gaussian distribution for each of the 5 indices.
 
-
+![swappingalgorithm](img/swappingalgorithm.png)
 
 
