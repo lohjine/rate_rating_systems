@@ -10,7 +10,7 @@ When two players are matched-up against each other, 2 numbers are generated for 
 
 ```
 1. Players are sorted according to their current matchmaking rating (e.g. [1400, 1450, 1490, 1520, ...])
-2. A running window of 50 is performed across the array of players, where the indices of players are shuffled uniformly within the window at each step. (e.g. after first step, [1490, 1400, 1520, 1450, ...(first 50), 1900, 1910, 1930, ...] )
+2. 50 passes of swapping are done. In each pass across the array, we swap adjacent indices with probability 50%.
 3. Players are matched against their adjacent index. (e.g. [1490 vs 1400, 1520 vs 1450, ...])
 ```
 
@@ -42,7 +42,9 @@ In this run, we half the stdev loss for each match by taking the mean of the ori
 
 We see significant improvement to Glicko2, but similar performance for Glicko.
 
+## Empirical results of shuffling algorithm
 
+We run the shuffling algorithm for 100 players, with 50 swap passes, for 10000 trials. The resulting histogram for indices 1, 30, 50, 70, 100 are plotted, which shows a close-to-gaussian distribution for each of the 5 indices.
 
 
 
