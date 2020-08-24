@@ -225,7 +225,7 @@ class ConvergenceEvaluation:
     """
 
     def __init__(self, genplayerfunc, matchfunc, drawmatchfunc, winPcalcfunc, player_count=1000, player_gen_mean=3000,
-                 player_gen_sd=2000, player_sd=10,
+                 player_gen_sd=2000, player_sd=10, swap_passes=50,
                  seed=42):
         self.genplayerfunc = genplayerfunc
         self.matchfunc = matchfunc
@@ -233,6 +233,7 @@ class ConvergenceEvaluation:
         self.winPcalcfunc = winPcalcfunc
 
         self.player_count = player_count
+        self.swap_passes = swap_passes
 
         self.eval_player_pool = {}
         self.idx = 0
@@ -281,14 +282,14 @@ class ConvergenceEvaluation:
 
         round_loglosses = []
 
-        # v3
-        # swap then pair up
-        v3_pairings = np.arange(0, self.player_count)
-        ra = np.arange(0, max(5, round(self.player_count * 0.1)))
+        # Generate shuffled list of players
+        pairings = np.arange(0,self.player_count)
 
-        for i in range(len(v3_pairings) - (len(ra) - 1)):
-            np.random.shuffle(ra)
-            v3_pairings[i:i + (len(ra))] = v3_pairings[i:i + (len(ra))][ra]
+        for i in range(self.swap_passes):
+            pre_rand = np.random.randint(0,2,len(sorted_order))
+            for j in range(len(sorted_order)-1):
+                if pre_rand[j] == 0:
+                    pairings[j], pairings[j+1] = pairings[j+1], pairings[j]
 
         interval = 2
         start_iter = 0
@@ -298,8 +299,8 @@ class ConvergenceEvaluation:
 
         for i in range(start_iter, end_iter, interval):
             # v3
-            player_a = sorted_order[v3_pairings[i]]
-            player_b = sorted_order[v3_pairings[i + 1]]
+            player_a = sorted_order[pairings[i]]
+            player_b = sorted_order[pairings[i + 1]]
             matchups.append((player_a, player_b))
 
         for player_a, player_b in matchups:
@@ -546,6 +547,16 @@ def compare_results_rating_evaluation(list_of_obj_loss, moving_window=1000, lege
         plt.savefig('img/scenario2.png')
 
 
+
+######################
+# Scenario 3
+######################
+
+
+
+
+
+
 ######################
 # Test Framework
 ######################
@@ -601,7 +612,6 @@ def scenario2():
 headless = False
 
 if __name__ == "__main__":
-
     # headless
     headless = True
     matplotlib.use('Agg')
