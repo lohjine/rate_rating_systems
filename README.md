@@ -31,7 +31,7 @@ When two players are matched-up against each other, 2 numbers are generated for 
 
 ```
 1. Players are sorted according to their current matchmaking rating (e.g. [1400, 1450, 1490, 1520, ...])
-2. 50 passes of swapping are done. In each pass across the array, we swap adjacent indices with probability 50%.
+2. 50 passes of swapping are done. In each pass across the array, we swap adjacent indices with probability 50%. For each alternate pass, we swap the direction of traversal through the array.
 3. Players are matched against their adjacent index. (e.g. [1490 vs 1400, 1520 vs 1450, ...])
 ```
 

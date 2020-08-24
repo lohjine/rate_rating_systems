@@ -287,9 +287,14 @@ class ConvergenceEvaluation:
 
         for i in range(self.swap_passes):
             pre_rand = np.random.randint(0,2,len(sorted_order))
-            for j in range(len(sorted_order)-1):
-                if pre_rand[j] == 0:
-                    pairings[j], pairings[j+1] = pairings[j+1], pairings[j]
+            if i%2 == 0:
+                for j in range(self.player_count-1):
+                    if pre_rand[j] == 0:
+                        pairings[j], pairings[j+1] = pairings[j+1], pairings[j]
+            else:
+                for j in range(self.player_count-1,0,-1):
+                    if pre_rand[j] == 0:
+                        pairings[j], pairings[j-1] = pairings[j-1], pairings[j]
 
         interval = 2
         start_iter = 0
