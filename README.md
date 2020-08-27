@@ -72,9 +72,51 @@ Logloss, moving average of last 5000 games. The lower the logloss score, the bet
 ELO, Glicko and Glicko2 converges to similar logloss scores, but Trueskill's logloss never does better than the baseline always-draw model.
 
 
+## Scenario 3
+
+Scenario 3 is an extension of scenario 1 into the FFA format.
+
+500 players are generated, having a rating from a normal distribution of mean=3000, sd=2000, and a standard deviation from a uniform distribution of 0 to 10.
+
+In each FFA round, 8 players have a number drawn from their distribution, and the ranks are determined on the number. No draws are allowed. 
+
+200 rounds are played. In each round, the pairings are determined by the following procedure:
+
+```
+1. Players are sorted according to their current matchmaking rating (e.g. [1400, 1450, 1490, 1520, ...])
+2. 50 passes of swapping are done. In each pass across the array, we swap adjacent indices with probability 50%. For each alternate pass, we swap the direction of traversal through the array.
+3. FFA groups are formed ono an adjacent basis. (e.g. [first 8 indices, next 8 indices, ...])
+```
+
+As each player only plays 1 game per round, all ratings are essentially simultaneously updated at the end of each round.
+
+Because certain rating systems do not have a native support for FFA, we will describe how we extend them for FFA:
+
+* ELO - we extend ELO in 2 ways. In the first, each player is considered to have won a round against the player who is one rank lower than him, and lost a round against the player who is one rank above him, as described [here](http://www.tckerrigan.com/Misc/Multiplayer_Elo/). In the second (labelled elov2), each player is considered to have won a round against each and every players ranked lower than him, and lost a round against each and every player ranked higher than him, as described [here](http://elo-norsak.rhcloud.com/index.php) and [here](https://github.com/FigBug/Multiplayer-ELO/blob/master/python/elo.py).
+* Glicko - Similar to ELOv2, each player is considered to have won a round against each and every players ranked lower than him, and lost a round against each and every player ranked higher than him. The compiled results are calculated as a single glicko-match.
+* Glicko2 - Handled the same way as Glicko.
+* Trueskill - Has native support for FFA.
+
+### Evaluation Metric
+
+The [Spearman's footrule](https://people.revoledu.com/kardi/tutorial/Similarity/FootruleDistance.html) is calculated after each round. This is a measure of how well-sorted a sequence is, where a score of 0 indicates that the players are fully sorted with regards to their ratings.
+
+As RNG is used within the simulation, we run 10 simulations for each rating system to obtain a better statistical picture. The mean is plotted as a solid line, while the max and min are plotted as the shaded areas.
+
+### Results
+
+![scenario1result](img/scenario1.png)
+
+The second plot is a zoomed-in version of second half of the first plot.
+
+![scenario1_2result](img/scenario1_2.png)
+
+Trueskill performed the best, while Glicko managed to catch up later on.
+
+
 ## Caveats
 
-In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for multiple matches at a time (5-10). However, for many purposes such as online games, ratings are neccessarily updated after every match, and used for matchmaking immediately after. It is possible to retroactively rerun Glicko/Glicko2, or use a running window, but this may result in rating loss after a win, which is a major feel-bad factor for the player. Hence, we choose to evaluate ratings after each match.
+In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for multiple matches at a time (5-10). However, for many purposes such as online games, ratings are necessarily updated after every match, and used for matchmaking immediately after. It is possible to retroactively rerun Glicko/Glicko2, or use a running window, but this may result in rating loss after a win, which is a major feel-bad factor for the player. Hence, we choose to evaluate ratings after each match.
 
 
 ## Running the simulations

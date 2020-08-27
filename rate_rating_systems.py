@@ -10,7 +10,7 @@ from skills import Match, Team, Matches
 from skills.glicko import GlickoGameInfo, GlickoCalculator
 from elo import Elo
 from elo import expect as elo_expect
-from trueskill import Rating as tsrating, rate_1vs1 as tsrate_1vs1
+from trueskill import Rating as tsrating, rate_1vs1 as tsrate_1vs1, rate as tsrate
 import trueskill
 
 
@@ -111,6 +111,16 @@ def ts_Pwin(rA, rB):
     return trueskill.TrueSkill().cdf(deltaMu / rsss)
 
 
+
+def ts_rate_ffa(player_ranks):
+
+    player_ranks = [(i,) for i in player_ranks]
+
+    result = tsrate(player_ranks)
+
+    return [tsRating(i[0]) for i in result]
+
+
 ######################
 # ELO
 ######################
@@ -139,6 +149,65 @@ def Elo1v1draw(a, b):
 
 def EloPwin(a, b):
     return elo_expect(a.rating, b.rating)
+
+
+def Elo_ffa_v1(player_ranks):
+    """
+    player win 1 above, lose 1 below
+
+    http://www.tckerrigan.com/Misc/Multiplayer_Elo/
+
+    """
+
+    elochanges = []
+
+    for i, player_a in enumerate(player_ranks):
+        elochange = 0
+
+        if i != 0:
+            player_b = player_ranks[i-1]
+            ea = 1 / (1 + np.power(10, (player_b.rating - player_a.rating) / 400))
+            elochange += player_a.k_factor * (0 - ea)
+
+        if i < len(player_ranks) - 1:
+            player_b = player_ranks[i+1]
+            ea = 1 / (1 + np.power(10, (player_b.rating - player_a.rating) / 400))
+            elochange += player_a.k_factor * (1 - ea)
+
+        elochanges.append(elochange)
+
+    for idx, rating in enumerate(elochanges):
+        player_ranks[idx].rating += rating
+
+    return player_ranks
+
+def Elo_ffa_v2(player_ranks):
+    """
+    player wins everyone below, loses everyone above, weighted k
+
+    http://elo-norsak.rhcloud.com/index.php
+    https://github.com/FigBug/Multiplayer-ELO/blob/master/python/elo.py
+
+    """
+
+    elochanges = []
+
+    for i, player_a in enumerate(player_ranks):
+        elochange = 0
+        for j, player_b in enumerate(player_ranks):
+            if i==j:
+                continue
+            ea = 1 / (1 + np.power(10, (player_b.rating - player_a.rating) / 400))
+            if j>i:
+                elochange += np.round(player_a.k_factor / len(player_ranks) * (1 - ea))
+            elif i>j:
+                elochange += np.round(player_a.k_factor / len(player_ranks) * (0 - ea))
+        elochanges.append(elochange)
+
+    for idx, rating in enumerate(elochanges):
+        player_ranks[idx].rating += rating
+
+    return player_ranks
 
 
 ######################
@@ -180,6 +249,45 @@ def glicko1v1draw(a, b):
 def glickoPwin(a, b):
     return glickocalculator.expected_score(a.rating, b.rating, GlickoGameInfo())
 
+def glickoffa(player_ranks):
+    """
+    Done as head-to-head for each player
+    """
+
+    post_ratings = []
+
+    game_info = GlickoGameInfo()
+
+    teams = []
+    for idx, player in enumerate(player_ranks):
+        teams.append(Team({idx: (player.rating, player.stdev)}))
+
+
+    for idx, player in enumerate(player_ranks):
+
+        matches = []
+
+        for jdx in range(len(player_ranks)):
+            if idx == jdx:
+                continue
+            if idx > jdx:
+                matches.append(Match([teams[idx], teams[jdx]], [1, 0] )) # player 1 loses
+            else:
+                matches.append(Match([teams[idx], teams[jdx]], [0, 1] )) # player 1 wins
+
+        matches = Matches(matches)
+        new_ratings = glickocalculator.new_ratings(matches, 1, game_info)
+
+        for player_result in new_ratings:
+            if player_result.players()[0].player_id == idx:
+                post_ratings.append(glicko(rating=player_result[new_ratings.player_by_id(idx)].mean,
+                                           stdev=player_result[new_ratings.player_by_id(idx)].stdev))
+                break
+
+    assert len(post_ratings) == len(player_ranks)
+
+    return post_ratings
+
 
 ######################
 # Glicko2
@@ -209,6 +317,33 @@ def glicko21v1draw(a, b):
 def glicko2Pwin(a, b):
     return glickocalculator.expected_score(a.rating, b.rating, GlickoGameInfo())
 
+
+
+def glicko2ffa(player_ranks):
+    """
+    Done as head-to-head for each player
+    """
+    ori_ratings = [i.rating for i in player_ranks]
+    ori_rd = [i.rd for i in player_ranks]
+
+    for idx, player in enumerate(player_ranks):
+        ratings = []
+        rds = []
+        winloss = []
+        for jdx, player_b in enumerate(player_ranks):
+
+            if idx == jdx:
+                continue
+            ratings.append(ori_ratings[jdx])
+            rds.append(ori_rd[jdx])
+            if idx > jdx:
+                winloss.append(0)
+            else:
+                winloss.append(1)
+
+        player.update_player(ratings, rds, winloss)
+
+    return player_ranks
 
 ######################
 # Scenario 1
@@ -437,7 +572,7 @@ def compare_results_convergence(list_of_obj, moving_window=100, legend=None, tit
         plt.legend(legend)
 
 
-def compare_results_convergence_multi(list_of_obj, legend=None, title_details=''):
+def compare_results_convergence_multi(list_of_obj, legend=None, title_details='', filename=''):
     """
     Compare results from multiple runs each of multiple rating systems.
 
@@ -464,7 +599,7 @@ def compare_results_convergence_multi(list_of_obj, legend=None, title_details=''
         plt.legend(legend)
 
     if headless:
-        plt.savefig('img/scenario1.png')
+        plt.savefig('img/' + filename + '.png')
 
     plt.figure()
     for obj in list_of_obj:
@@ -488,7 +623,7 @@ def compare_results_convergence_multi(list_of_obj, legend=None, title_details=''
         plt.legend(legend)
 
     if headless:
-        plt.savefig('img/scenario1_2.png')
+        plt.savefig('img/' + filename + '_2.png')
 
 
 ######################
@@ -586,8 +721,136 @@ def compare_results_rating_evaluation(list_of_obj_loss, moving_window=1000, lege
 
 
 ######################
-# Scenario 3
+# Scenario 3 -  ffa
 ######################
+
+class FFAConvergenceEvaluation:
+    """
+    A synthetic simulation of players and matchmaking for FFA games.
+
+    Player ratings are generated from a normal distribution, and player standard deviations are generated from a uniform distribution.
+
+    When players match against each other, generate a number for each player distribution, and the final ranking is based on the generated numbers.
+
+    Results stored:
+        1. spearman's footrule
+
+    """
+
+    def __init__(self, genplayerfunc, matchfunc, player_count=1000, player_gen_mean=3000,
+                 player_gen_sd=2000, player_sd=10, number_of_players_per_match=8, swap_passes=50,
+                 seed=42):
+        self.genplayerfunc = genplayerfunc
+        self.matchfunc = matchfunc
+
+        self.player_count = player_count
+        self.number_of_players_per_match = number_of_players_per_match
+        self.swap_passes =  swap_passes
+
+        self.eval_player_pool = {}
+        self.idx = 0
+
+        self.footrules = []
+
+        # create pool of players
+        if not player_count % number_of_players_per_match == 0:
+            raise ValueError('Player count must be divisible by number_of_players_per_match')
+        np.random.seed(seed)
+
+        # this cannot be sorted, otherwise first round pairing will be deterministic
+        self.true_player_pool_means = np.random.rand(player_count) * 1000
+        self.true_player_pool_means = np.random.normal(player_gen_mean, player_gen_sd, size=player_count)
+        self.true_player_pool_stdev = np.random.rand(player_count) * 10
+
+        self.kendalltaus_order = np.argsort(self.true_player_pool_means)
+
+        # eval_player_pool id corresponds to true_player_pool_means id
+        for i in range(player_count):
+            self.eval_player_pool[i] = self.genplayerfunc()
+
+
+    def step(self, debug=False):
+        """
+        Each step consists of 1 round of matchmaking and games for each player.
+
+
+        Matchmaking
+        ---
+        Goal is to pair up close scores to play against each other, with some variance.
+
+        1. Players are sorted according to their current matchmaking rating (e.g. [1400, 1450, 1490, 1520, ...])
+        2. A running window of 10% of players is performed across the array of players, where the indices of players are shuffled uniformly within the window at each step. (e.g. after first step, [1490, 1400, 1520, 1450, ...(first 50), 1900, 1910, 1930, ...] )
+        3. Players are matched against their adjacent index. (e.g. [1490 vs 1400, 1520 vs 1450, ...])
+
+        """
+
+        sorted_order = sorted(self.eval_player_pool, key=lambda x: self.eval_player_pool[x].rating)
+
+        pairings = np.arange(0,self.player_count)
+
+        for i in range(self.swap_passes):
+            pre_rand = np.random.randint(0,2,len(sorted_order))
+            if i%2 == 0:
+                for j in range(self.player_count-1):
+                    if pre_rand[j] == 0:
+                        pairings[j], pairings[j+1] = pairings[j+1], pairings[j]
+            else:
+                for j in range(self.player_count-1,0,-1):
+                    if pre_rand[j] == 0:
+                        pairings[j], pairings[j-1] = pairings[j-1], pairings[j]
+
+        start_iter = 0
+        end_iter = len(sorted_order)
+
+        matchups = []
+
+        for i in range(start_iter, end_iter, self.number_of_players_per_match):
+            matchups.append(pairings[i : i + self.number_of_players_per_match])
+
+        for player_group in matchups:
+
+            player_scores = []
+
+            for player in player_group:
+
+                player_score = np.random.normal(self.true_player_pool_means[player],
+                                              self.true_player_pool_stdev[player],
+                                              size=1)
+                player_scores.append(player_score[0])
+
+
+            ranking = np.argsort(player_scores)[::-1]
+
+            ranked_players = player_group[ranking]
+
+            # player_group is still id
+            # ranked_players is still id, arranged to ranking
+
+            eval_ranked_players = self.matchfunc([self.eval_player_pool[ranked_player] for ranked_player in ranked_players])
+
+            for idx, ranked_player in enumerate(ranked_players):
+                self.eval_player_pool[ranked_player] = eval_ranked_players[idx]
+
+#            if debug:
+#                print(
+#                    f"{player_a} ({self.eval_player_pool[player_a].mu}) vs {player_b} ({self.eval_player_pool[player_b].mu}), score={score}, win_prob={win_prob}, loss={logloss}")
+
+        sorted_order_after = sorted(self.eval_player_pool, key=lambda x: self.eval_player_pool[x].rating)
+
+        self.footrules.append(footrule(self.kendalltaus_order, sorted_order_after))
+
+        self.idx += 1
+
+
+    def simulate(self, steps=100):
+        for i in tqdm(range(steps)):
+            self.step()
+
+    def output_results(self, moving_window=100, length=1e9):
+
+        plt.figure()
+        plt.plot(self.footrules)
+        plt.title('ranking_error')
 
 
 
@@ -624,7 +887,8 @@ def scenario1():
         glicko2cons.append(glicko2con)
 
     compare_results_convergence_multi([elocons, glickocons, tscons, glicko2cons], legend=['elo', 'glicko', 'trueskill', 'glicko2'],
-                                      title_details='Ranking Error (lower is better) of rating systems')
+                                      title_details='Ranking Error (lower is better) of rating systems',
+                                      filename='scenario1')
 
 
 def scenario2():
@@ -646,6 +910,42 @@ def scenario2():
                                       title_details='Logloss (moving average=5000, lower is better) of rating systems')
 
 
+def scenario3():
+
+    elocons = []
+    eloconv2s = []
+    glickocons = []
+    tscons = []
+    glicko2cons = []
+    for seed in range(42, 52):
+
+        elocon = FFAConvergenceEvaluation(EloRating, Elo_ffa_v1, player_count=512, seed=seed, swap_passes=50)
+        elocon.simulate(steps=200)
+
+        eloconv2 = FFAConvergenceEvaluation(EloRating, Elo_ffa_v2, player_count=512, seed=seed, swap_passes=50)
+        eloconv2.simulate(steps=200)
+
+        glickocon = FFAConvergenceEvaluation(glicko, glickoffa, player_count=512, seed=seed, swap_passes=50)
+        glickocon.simulate(steps=200)
+
+        tscon = FFAConvergenceEvaluation(tsRating, ts_rate_ffa, player_count=512, seed=seed, swap_passes=50)
+        tscon.simulate(steps=200)
+
+        glicko2con = FFAConvergenceEvaluation(glicko2.Player, glicko2ffa, player_count=512, seed=seed, swap_passes=50)
+        glicko2con.simulate(steps=200)
+
+        elocons.append(elocon)
+        eloconv2s.append(eloconv2)
+        glickocons.append(glickocon)
+        tscons.append(tscon)
+        glicko2cons.append(glicko2con)
+
+    compare_results_convergence_multi([elocons, glickocons, tscons, glicko2cons, eloconv2s],
+                                      legend=['elo', 'glicko', 'trueskill', 'glicko2', 'elov2'],
+                                      title_details='Ranking Error (lower is better) of rating systems for FFA',
+                                      filename='scenario3')
+
+
 headless = False
 
 if __name__ == "__main__":
@@ -653,13 +953,16 @@ if __name__ == "__main__":
     headless = True
     matplotlib.use('Agg')
     print()
-    print('Running scenario 1...')
+#    print('Running scenario 1...')
+#    print()
+#    scenario1()
+#    print()
+#    print('Running scenario 2...')
+#    print()
+#    scenario2()
     print()
-    scenario1()
+    print('Running scenario 3...')
     print()
-    print('Running scenario 2...')
-    print()
-    scenario2()
-    print()
+    scenario3()
     print('Complete')
     print()
