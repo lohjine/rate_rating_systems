@@ -39,9 +39,7 @@ As each player only plays 1 game per round, all ratings are essentially simultan
 
 ### Evaluation Metric
 
-The [Kendall-Tau coefficient](https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient) is calculated after each round. This is a measure of how well-sorted a sequence is, where a score of 1 indicates that the players are fully sorted with regards to their ratings, while a score of 0 indicates that the players are randomized with regards to their ratings. As all players are initialized with the same default ratings and shuffled, the initial Kendall-Tau score is 0.
-
-The Kendall-Tau score can get quite noisy, so we apply a moving average of 10.
+The [Spearman's footrule](https://people.revoledu.com/kardi/tutorial/Similarity/FootruleDistance.html) is calculated after each round. This is a measure of how well-sorted a sequence is, where a score of 0 indicates that the players are fully sorted with regards to their ratings.
 
 As RNG is used within the simulation, we run 10 simulations for each rating system to obtain a better statistical picture. The mean is plotted as a solid line, while the max and min are plotted as the shaded areas.
 
@@ -49,8 +47,11 @@ As RNG is used within the simulation, we run 10 simulations for each rating syst
 
 ![scenario1result](img/scenario1.png)
 
-Trueskill performed the best, while Glicko managed to catch up later on.
+The second plot is a zoomed-in version of second half of the first plot.
 
+![scenario1_2result](img/scenario1_2.png)
+
+Trueskill performed the best, while Glicko managed to catch up later on.
 
 ## Scenario 2
 

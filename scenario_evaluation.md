@@ -42,10 +42,86 @@ In this run, we half the stdev loss for each match by taking the mean of the ori
 
 We see significant improvement to Glicko2, but similar performance for Glicko.
 
+
 ## Empirical results of shuffling algorithm
 
 We run the shuffling algorithm for 100 players, with 50 swap passes, for 100000 trials. The resulting histogram for indices 1, 30, 50, 70, 100 are plotted, which shows a close-to-gaussian distribution for each of the 5 indices.
 
 ![swappingalgorithm](img/swappingalgorithm.png)
+
+
+## Unsuitability of Kendall-Tau metric for ranking
+
+Initially, we used [Kendall-Tau coefficient](https://en.wikipedia.org/wiki/Kendall_rank_correlation_coefficient) to evaluate how well-sorted the player ranking is after each round. However, it turned out to be unsuitable due to degenerate conditions. Instead we use [Spearman's footrule](https://people.revoledu.com/kardi/tutorial/Similarity/FootruleDistance.html), implemented in code as:
+
+```
+def ranking_error(a,b):
+    a = np.array(a)
+    b = np.array(b)
+    error = 0
+    for idx, i in enumerate(a):
+        error += np.abs(idx - np.where(b==i)[0][0])
+    return error/len(a)
+```
+
+In plain English, the error of an element is the difference between its index and the correct index it should be at. We sum up this error for every element, and normalize it by dividing by the number of elements. Lower error is better.
+
+We will demonstrate the degenerate cases where Kendall-Tau fails, but the Spearman's footrule does not.
+
+```
+# In this example, we expect to have a better correlation between s_correct and s1, as compared to s_correct and s2. s2 has been randomly shuffled.
+# kendall-tau should have a higher score for s_correct and s1, while footrule should have a lower score for them
+
+s_correct = [32, 37, 7, 2, 53, 21, 20, 14, 42, 3, 50]
+s1        = [32, 7, 37, 53, 2, 21, 20, 42, 14, 50, 3]
+s2        = [7, 37, 3, 20, 42, 32, 50, 2, 53, 21, 14]
+
+
+kendalltau(s_correct, s1)
+>>> KendalltauResult(correlation=-0.8181818181818182, pvalue=0.00013227513227513228)
+footrule(s_correct, s1)
+>>> 0.7272727272727273
+
+kendalltau(s_correct, s2)
+>>> KendalltauResult(correlation=0.3090909090909091, pvalue=0.21834651074234407)
+footrule(s_correct, s2)
+>>> 3.6363636363636362
+
+
+# This example is similar, but with a longer sequence. s2 has been randomly shuffled.
+
+s_correct = [32, 37, 7, 2, 53, 21, 20, 14, 42, 3, 50, 10, 27, 46, 41, 43, 18, 4, 52, 9, 51, 15, 1, 35, 38, 19, 0, 24, 30, 34, 36, 48, 55, 54, 8, 45, 16, 6, 39, 28, 26, 47, 11, 22, 33, 44, 13, 49, 17, 25, 12, 5, 23, 40, 29, 31]
+s1 = [32, 7, 37, 53, 2, 21, 20, 42, 14, 50, 3, 46, 27, 10, 41, 18, 43, 4, 52, 9, 51, 15, 35, 1, 38, 19, 24, 30, 0, 34, 48, 36, 55, 8, 16, 54, 6, 45, 39, 26, 28, 11, 22, 47, 33, 13, 44, 17, 25, 49, 12, 5, 23, 40, 29, 31]
+s2 = [26, 4, 14, 36, 6, 48, 41, 17, 49, 0, 7, 35, 46, 10, 44, 9, 13, 8, 53, 25, 37, 15, 45, 30, 31, 34, 20, 27, 52, 1, 47, 5, 16, 43, 33, 32, 19, 3, 38, 29, 54, 24, 40, 11, 22, 55, 28, 51, 2, 42, 21, 18, 12, 23, 39, 50]
+
+kendalltau(s_correct, s1)
+>>> KendalltauResult(correlation=0.0025974025974025974, pvalue=0.9774466961370482)
+footrule(s_correct, s1)
+>>> 0.75
+
+kendalltau(s_correct, s2)
+>>> KendalltauResult(correlation=0.1168831168831169, pvalue=0.20331759551837802)
+footrule(s_correct, s2)
+>>> 17.892857142857142
+
+```
+
+This result arises because Kendall-Tau does not penalize based on indices. Kendall-Tau only takes into account whether each pair comparison is in the right order or not. I.E. the error for (a,b) pairing, assuming b should be ranked later than a, is the same for [b,..,..,..,a] and [..,..,..,b,a].
+
+
+## Demonstration that Spearman's footrule converges correctly
+
+In this case, we set players' standard deviation to 0 to remove the chance of a draw. Number of players are set to 40 so convergence is faster. Running window is set to 40, which means that matchmaking is completely random.
+
+In this plot, the moving average of Kendall-Tau score is set to 1, and we only run 1 simulation for each rating system.
+
+![scenario1rankingerrorconvergence](img/scenario1rankingerror.png)
+
+
+
+
+
+
+
 
 

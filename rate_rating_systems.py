@@ -20,6 +20,14 @@ def moving_average(a, n=3):
     return ret[n - 1:] / n
 
 
+def footrule(a,b):
+    a = np.array(a)
+    b = np.array(b)
+    error = 0
+    for idx, i in enumerate(a):
+        error += np.abs(idx - np.where(b==i)[0][0])
+    return error/len(a)
+
 ratingevaluationdataset = pd.read_csv(r"dataset\ChessRatings2\primary_training_part1_processed.csv")
 
 """
@@ -241,6 +249,7 @@ class ConvergenceEvaluation:
         self.loglosses = []
         self.kendalltaus = []
         self.correlations = []
+        self.footrules = []
 
         # create pool of players
         if not player_count % 2 == 0:
@@ -370,6 +379,7 @@ class ConvergenceEvaluation:
         self.loglosses.append(np.mean(round_loglosses))
         sorted_order_after = sorted(self.eval_player_pool, key=lambda x: self.eval_player_pool[x].rating)
         self.kendalltaus.append(kendalltau(self.kendalltaus_order, sorted_order_after))
+        self.footrules.append(footrule(self.kendalltaus_order, sorted_order_after))
 
         # correlation measure turns out to be very similar as using kendalltau alone
         self.correlations.append(np.corrcoef(self.kendalltaus_order, sorted_order_after)[0, 1])
@@ -427,7 +437,7 @@ def compare_results_convergence(list_of_obj, moving_window=100, legend=None, tit
         plt.legend(legend)
 
 
-def compare_results_convergence_multi(list_of_obj, moving_window=100, legend=None, title_details=''):
+def compare_results_convergence_multi(list_of_obj, legend=None, title_details=''):
     """
     Compare results from multiple runs each of multiple rating systems.
 
@@ -435,10 +445,9 @@ def compare_results_convergence_multi(list_of_obj, moving_window=100, legend=Non
     plt.figure()
     for obj in list_of_obj:
 
-        # calcluate the moving average for each of the cons
         res = []
         for run in obj:
-            res.append(np.round(moving_average(np.array([kt.correlation for kt in run.kendalltaus]), n=moving_window), decimals=7))
+            res.append(run.footrules)
 
         res = np.vstack(res)
         res_avg = np.mean(res, axis=0)
@@ -449,13 +458,37 @@ def compare_results_convergence_multi(list_of_obj, moving_window=100, legend=Non
         plt.fill_between(range(len(res_avg)), res_high, res_low, alpha=0.1)
 
     plt.title(title_details)
-    plt.ylabel('Kendall-Tau')
+    plt.ylabel('Footrule Error')
     plt.xlabel('Number of rounds')
     if legend:
         plt.legend(legend)
 
     if headless:
         plt.savefig('img/scenario1.png')
+
+    plt.figure()
+    for obj in list_of_obj:
+
+        res = []
+        for run in obj:
+            res.append(run.footrules)
+
+        res = np.vstack(res)
+        res_avg = np.mean(res, axis=0)
+        res_high = np.max(res, axis=0)
+        res_low = np.min(res, axis=0)
+
+        plt.plot(np.arange(1,res.shape[1])[int(-1*np.round(res.shape[1]/2)):], res_avg[int(-1*np.round(res.shape[1]/2)):])
+        plt.fill_between(range(len(res_avg))[int(-1*np.round(res.shape[1]/2)):], res_high[int(-1*np.round(res.shape[1]/2)):], res_low[int(-1*np.round(res.shape[1]/2)):], alpha=0.1)
+
+    plt.title(title_details)
+    plt.ylabel('Footrule Error')
+    plt.xlabel('Number of rounds')
+    if legend:
+        plt.legend(legend)
+
+    if headless:
+        plt.savefig('img/scenario1_2.png')
 
 
 ######################
@@ -590,8 +623,8 @@ def scenario1():
         tscons.append(tscon)
         glicko2cons.append(glicko2con)
 
-    compare_results_convergence_multi([elocons, glickocons, tscons, glicko2cons], legend=['elo', 'glicko', 'trueskill', 'glicko2'], moving_window=10,
-                                      title_details='Kendall-Tau score (higher is better) of rating systems')
+    compare_results_convergence_multi([elocons, glickocons, tscons, glicko2cons], legend=['elo', 'glicko', 'trueskill', 'glicko2'],
+                                      title_details='Ranking Error (lower is better) of rating systems')
 
 
 def scenario2():
