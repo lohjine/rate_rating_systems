@@ -105,13 +105,13 @@ As RNG is used within the simulation, we run 10 simulations for each rating syst
 
 ### Results
 
-![scenario1result](img/scenario1.png)
+![scenario3result](img/scenario3.png)
 
 The second plot is a zoomed-in version of second half of the first plot.
 
-![scenario1_2result](img/scenario1_2.png)
+![scenario3_2result](img/scenario3_2.png)
 
-Trueskill performed the best, while Glicko managed to catch up later on.
+ELO and Glicko2 performed the best on average.
 
 
 ## Caveats
