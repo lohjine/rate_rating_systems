@@ -17,16 +17,6 @@ When two players are matched-up against each other, 2 numbers are generated for 
 As each player only plays 1 game per round, all ratings are essentially simultaneously updated at the end of each round.
 
 
-## Investigating the effect of reducing Glicko/Glicko2 stdev loss
-
-In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for multiple matches at a time (5-10). However, in scenario 1, we evaluate single matches at a time. One consequence is that the stdev is reduced much faster than would normally be expected to.
-
-In this run, we half the stdev loss for each match by taking the mean of the original and adjusted stdev.
-
-![scenario1_reducedglickosd](img/scenario1_reducedglickosd.png)
-
-We see significant improvement to Glicko2, but similar performance for Glicko.
-
 
 ## Empirical results of shuffling algorithm
 
@@ -115,4 +105,18 @@ The second plot is a zoomed-in version of second half of the first plot.
 
 We see that swap passes = 0 and 1 has slower initial convergence. However, swap passes = 1 has the best scores after ~80 rounds.
 
+
+
+## Investigating the effect of reducing Glicko/Glicko2 stdev loss
+
+In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for multiple matches at a time (5-10). However, in scenario 1, we evaluate single matches at a time. One consequence is that the stdev is reduced much faster than would normally be expected to.
+
+In this run, we half the stdev loss for each match by taking the mean of the original and adjusted stdev.
+
+The second plot is a zoomed-in version of second half of the first plot.
+
+![scenario1_reducedglickosd](img/scenario1_reducedglickosd.png)
+![scenario1_reducedglickosd_2](img/scenario1_reducedglickosd_2.png)
+
+We see consistently poorer performance for reduced sd in the case for Glicko. For Glicko2 however, reducing sd worsens early scores, but improves later scores.
 
