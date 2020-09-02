@@ -16,14 +16,6 @@ When two players are matched-up against each other, 2 numbers are generated for 
 
 As each player only plays 1 game per round, all ratings are essentially simultaneously updated at the end of each round.
 
-## Demonstration that Kendall-Tau converges correctly
-
-In this case, we set players' standard deviation to 0 to remove the chance of a draw. Number of players are set to 40 so convergence is faster. Running window is set to 40, which means that matchmaking is completely random.
-
-In this plot, the moving average of Kendall-Tau score is set to 1, and we only run 1 simulation for each rating system.
-
-![scenario1kendalltauconvergence](img/scenario1kendalltauconvergence.png)
-
 
 ## Investigating the effect of running window in matchmaking
 
@@ -107,6 +99,18 @@ footrule(s_correct, s2)
 ```
 
 This result arises because Kendall-Tau does not penalize based on indices. Kendall-Tau only takes into account whether each pair comparison is in the right order or not. I.E. the error for (a,b) pairing, assuming b should be ranked later than a, is the same for [b,..,..,..,a] and [..,..,..,b,a].
+
+
+## Demonstration that Spearman's footrule converges correctly
+
+In this case, we set players' standard deviation to 0 to remove the chance of a draw. Number of players are set to 40 so convergence is faster.
+
+In this plot, we only run 1 simulation for each rating system.
+
+![scenario1footruleconvergence.png](img/scenario1footruleconvergence.png)
+
+![scenario1footruleconvergence_2.png](img/scenario1footruleconvergence_2.png)
+
 
 
 
