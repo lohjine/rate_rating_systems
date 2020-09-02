@@ -17,13 +17,6 @@ When two players are matched-up against each other, 2 numbers are generated for 
 As each player only plays 1 game per round, all ratings are essentially simultaneously updated at the end of each round.
 
 
-## Investigating the effect of running window in matchmaking
-
-In the design of the matchmaking, we want to match players of close skill to each other. This is to test effect of matchmaking step 2 running window size. Kendall-Tau running average is set to 1. For window size=1, this reduces to no shuffling, players are matched against the closest skill.
-
-![scenario1poorconvergence](img/scenario1runningwindowconvergence.png)
-
-
 ## Investigating the effect of reducing Glicko/Glicko2 stdev loss
 
 In the use of Glicko/Glicko2, the ratings are recommended to be evaluated for multiple matches at a time (5-10). However, in scenario 1, we evaluate single matches at a time. One consequence is that the stdev is reduced much faster than would normally be expected to.
@@ -105,16 +98,21 @@ This result arises because Kendall-Tau does not penalize based on indices. Kenda
 
 In this case, we set players' standard deviation to 0 to remove the chance of a draw. Number of players are set to 40 so convergence is faster.
 
-In this plot, we only run 1 simulation for each rating system.
+In this plot, we only run 1 simulation for each rating system. The second plot is a zoomed-in version of second half of the first plot.
 
 ![scenario1footruleconvergence.png](img/scenario1footruleconvergence.png)
-
 ![scenario1footruleconvergence_2.png](img/scenario1footruleconvergence_2.png)
 
 
+## Investigating the effect of number of swap passes in matchmaking
 
+In the design of the matchmaking, we want to match players of close skill to each other. This is to test effect of matchmaking step 2 - number of swap passes. We use only ELO for this test. For swap passes = 0, this reduces to no shuffling, players are matched against the closest skill.
 
+The second plot is a zoomed-in version of second half of the first plot.
 
+![scenario1_swappasses](img/scenario1_swappasses.png)
+![scenario1_swappasses_2](img/scenario1_swappasses_2.png)
 
+We see that swap passes = 0 and 1 has slower initial convergence. However, swap passes = 1 has the best scores after ~80 rounds.
 
 
